@@ -159,8 +159,15 @@ case "$1" in
     terminfo)
         terminfo
         ;;
+    all)
+        link
+        terminfo
+        homebrew
+        shell
+        git
+        ;;
     *)
-        echo $"Usage: $(basename "$0") {link|git|brew|shell|terminfo}"
+        echo $"Usage: $(basename "$0") {link|git|brew|shell|terminfo|all}"
         exit 1
         ;;
 esac
