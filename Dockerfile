@@ -4,12 +4,15 @@ FROM ubuntu
 RUN apt update
 
 # Install dependencies
-RUN apt install -y zsh
-RUN apt install -y git
-RUN apt install -y sudo
-RUN apt install -y ruby
-RUN apt install -y curl
-RUN apt install -y vim
+RUN apt-get install -y build-essential
+RUN apt-get install -y file
+RUN apt-get install -y zsh
+RUN apt-get install -y git
+RUN apt-get install -y sudo
+RUN apt-get install -y ruby
+RUN apt-get install -y curl
+RUN apt-get install -y vim
+RUN apt-get install -y language-pack-en
 
 # take an SSH key as a build argument
 ARG PRIVATE_KEY
@@ -23,6 +26,7 @@ RUN useradd -ms /bin/bash user && \
 USER user:user
 
 WORKDIR /home/user
+RUN touch .bash_profile
 RUN mkdir -p .ssh
 RUN echo "$PRIVATE_KEY" > .ssh/id_rsa
 RUN echo "$PUBLIC_KEY" > .ssh/id_rsa.pub
