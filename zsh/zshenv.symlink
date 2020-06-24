@@ -1,4 +1,4 @@
-export DOTFILES=$HOME/.dotfiles
+export DOTFILES=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 export CACHEDIR="$HOME/.local/share"
 
 [[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR"
