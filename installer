@@ -10,6 +10,38 @@ seperator() {
     echo -e "==============================\n"
 }
 
+backeup() {
+    BACKUP_DIR=$HOME/dotfiles-backup
+
+    set -e # Exit immediately if a command exits with a non-zero status.
+
+    echo "Creating backup directory at $BACKUP_DIR"
+    mkdir -p "$BACKUP_DIR"
+
+    linkables=$( find -H "$DOTFILES" -maxdepth 3 -name '*.symlink' )
+
+    for file in $linkables; do
+        filename=".$( basename "$file" '.symlink' )"
+        target="$HOME/$filename"
+        if [ -f "$target" ]; then
+            echo "backing up $filename"
+            cp "$target" "$BACKUP_DIR"
+        else
+            echo -e "$filename does not exist at this location or is a symlink"
+        fi
+    done
+
+    for filename in "$HOME/.config/nvim" "$HOME/.vim" "$HOME/.vimrc"; do
+        if [ ! -L "$filename" ]; then
+            echo "backing up $filename"
+            cp -rf "$filename" "$BACKUP_DIR"
+        else
+            echo -e "$filename does not exist at this location or is a symlink"
+        fi
+    done
+}
+
+
 link() {
     echo -e "\nCreating symlinks"
     seperator
@@ -143,7 +175,66 @@ function terminfo() {
     tic -x "$DOTFILES/resources/xterm-256color-italic.terminfo"
 }
 
+macos() {
+    if [[ "$( uname )" == "Darwin" ]]; then
+        echo -e "\nConfiguring macOS"
+        seperator
+
+        echo "Finder: show all filename extensions"
+        defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+        echo "show hidden files by default"
+        defaults write com.apple.Finder AppleShowAllFiles -bool false
+
+        echo "only use UTF-8 in Terminal.app"
+        defaults write com.apple.terminal StringEncodings -array 4
+
+        echo "expand save dialog by default"
+        defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+
+        echo "show the ~/Library folder in Finder"
+        chflags nohidden ~/Library
+
+        echo "Enable full keyboard access for all controls (e.g. enable Tab in modal dialogs)"
+        defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+
+        echo "Enable subpixel font rendering on non-Apple LCDs"
+        defaults write NSGlobalDomain AppleFontSmoothing -int 2
+
+        echo "Use current directory as default search scope in Finder"
+        defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+
+        echo "Show Path bar in Finder"
+        defaults write com.apple.finder ShowPathbar -bool true
+
+        echo "Show Status bar in Finder"
+        defaults write com.apple.finder ShowStatusBar -bool true
+
+        echo "Disable press-and-hold for keys in favor of key repeat"
+        defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+
+        echo "Set a blazingly fast keyboard repeat rate"
+        defaults write NSGlobalDomain KeyRepeat -int 1
+
+        echo "Set a shorter Delay until key repeat"
+        defaults write NSGlobalDomain InitialKeyRepeat -int 15
+
+        echo "Enable tap to click (Trackpad)"
+        defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+
+        echo "Enable Safari’s debug menu"
+        defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
+
+        echo "Kill affected applications"
+
+        for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" >/dev/null 2>&1; done
+    fi
+}
+
 case "$1" in
+    backup)
+        backup
+        ;;
     link)
         link
         ;;
@@ -159,15 +250,19 @@ case "$1" in
     terminfo)
         terminfo
         ;;
+    macos)
+        macos
+        ;;
     all)
         link
         terminfo
         homebrew
         shell
         git
+        macos
         ;;
     *)
-        echo $"Usage: $(basename "$0") {link|git|brew|shell|terminfo|all}"
+        echo $"Usage: $(basename "$0") {backup|link|git|brew|shell|terminfo|macos|all}"
         exit 1
         ;;
 esac
