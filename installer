@@ -25,7 +25,7 @@ link() {
         fi
     done
 
-    echo -e "\\n\\ninstalling to ~/.config"
+    echo -e "\n\ninstalling to ~/.config"
     seperator
     if [ ! -d "$HOME/.config" ]; then
         echo "Creating ~/.config"
@@ -123,7 +123,8 @@ homebrew() {
 function shell() {
     echo -e "\nSetting up ZSH"
     seperator
-    zsh_path="$(brew --prefix)/bin/zsh"
+
+    [[ -z "$(command -v brew)" ]] && zsh_path="$(brew --prefix)/bin/zsh" || zsh_path="$(which zsh)"
     if ! grep "$zsh_path" /etc/shells; then
         echo "adding $zsh_path to /etc/shells"
         echo "$zsh_path" | sudo tee -a /etc/shells
