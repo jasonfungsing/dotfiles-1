@@ -7,7 +7,7 @@ command_exists() {
 }
 
 seperator() {
-    echo "=============================="
+    echo -e "==============================\n"
 }
 
 link() {
@@ -120,6 +120,28 @@ homebrew() {
     "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc --no-bash --no-fish
 }
 
+function shell() {
+    echo -e "\nSetting up ZSH"
+    seperator
+    zsh_path="$(brew --prefix)/bin/zsh"
+    if ! grep "$zsh_path" /etc/shells; then
+        echo "adding $zsh_path to /etc/shells"
+        echo "$zsh_path" | sudo tee -a /etc/shells
+    fi
+
+    if [[ "$SHELL" != "$zsh_path" ]]; then
+        chsh -s "$zsh_path"
+        echo "default shell changed to $zsh_path"
+    fi
+}
+
+function terminfo() {
+    echo -e "\nSetting up terminfo"
+    seperator
+    tic -x "$DOTFILES/resources/tmux.terminfo"
+    tic -x "$DOTFILES/resources/xterm-256color-italic.terminfo"
+}
+
 case "$1" in
     link)
         link
@@ -130,8 +152,14 @@ case "$1" in
     brew)
         homebrew
         ;;
+    shell)
+        shell
+        ;;
+    terminfo)
+        terminfo
+        ;;
     *)
-        echo $"Usage: $(basename "$0") {link|git|brew}"
+        echo $"Usage: $(basename "$0") {link|git|brew|shell|terminfo}"
         exit 1
         ;;
 esac
