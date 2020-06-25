@@ -27,9 +27,5 @@ RUN chmod 600 .ssh/id_rsa.pub
 RUN ssh-keyscan github.com >> .ssh/known_hosts
 
 RUN mkdir -p code
-# WORKDIR /home/user/code
-# RUN git clone git@github.com:nicknisi/dotfiles.git
-
-# WORKDIR /home/user/code/dotfiles
 
 CMD ["/bin/bash"]
