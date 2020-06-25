@@ -63,7 +63,7 @@ backup() {
 }
 
 
-link() {
+setup_symlinks() {
     title "Creating symlinks"
 
     if [ ! -e "$HOME/.dotfiles" ]; then
@@ -150,7 +150,7 @@ setup_git() {
     fi
 }
 
-homebrew() {
+setup_homebrew() {
     title "Setting up Homebrew"
 
     if test ! "$(command -v brew)"; then
@@ -174,7 +174,7 @@ homebrew() {
     "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc --no-bash --no-fish
 }
 
-function shell() {
+function setup_shell() {
     title "Configuring shell"
 
     [[ -n "$(command -v brew)" ]] && zsh_path="$(brew --prefix)/bin/zsh" || zsh_path="$(which zsh)"
@@ -189,7 +189,7 @@ function shell() {
     fi
 }
 
-function terminfo() {
+function setup_terminfo() {
     title "Configuring terminfo"
 
     info "adding tmux.terminfo"
@@ -199,7 +199,7 @@ function terminfo() {
     tic -x "$DOTFILES/resources/xterm-256color-italic.terminfo"
 }
 
-macos() {
+setup_macos() {
     if [[ "$(uname)" == "Darwin" ]]; then
         title "Configuring macOS"
 
@@ -259,33 +259,33 @@ case "$1" in
         backup
         ;;
     link)
-        link
+        setup_symlinks
         ;;
     git)
         setup_git
         ;;
-    brew)
-        homebrew
+    homebrew)
+        setup_homebrew
         ;;
     shell)
-        shell
+        setup_shell
         ;;
     terminfo)
-        terminfo
+        setup_terminfo
         ;;
     macos)
-        macos
+        setup_macos
         ;;
     all)
-        link
-        terminfo
-        homebrew
-        shell
-        git
-        macos
+        setup_symlinks
+        setup_terminfo
+        setup_homebrew
+        setup_shell
+        setup_git
+        setup_macos
         ;;
     *)
-        echo -e $"\nUsage: $(basename "$0") {backup|link|git|brew|shell|terminfo|macos|all}\n"
+        echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|shell|terminfo|macos|all}\n"
         exit 1
         ;;
 esac
