@@ -1,9 +1,34 @@
 #!/usr/bin/env bash
 
 DOTFILES="$(pwd)"
+COLOR_GRAY="\033[1;38;5;243m"
+COLOR_BLUE="\033[1;34m"
+COLOR_GREEN="\033[1;32m"
+COLOR_RED="\033[1;31m"
+COLOR_PURPLE="\033[1;35m"
+COLOR_YELLOW="\033[1;33m"
+COLOR_NONE="\033[0m"
 
-seperator() {
-    echo -e "==============================\n"
+title() {
+    echo -e "\n${COLOR_PURPLE}$1${COLOR_NONE}"
+    echo -e "${COLOR_GRAY}==============================${COLOR_NONE}\n"
+}
+
+error() {
+    echo -e "${COLOR_RED}Error: ${COLOR_NONE}$1"
+    exit 1
+}
+
+warning() {
+    echo -e "${COLOR_YELLOW}Warning: ${COLOR_NONE}$1"
+}
+
+info() {
+    echo -e "${COLOR_BLUE}Info: ${COLOR_NONE}$1"
+}
+
+success() {
+    echo -e "${COLOR_GREEN}$1${COLOR_NONE}"
 }
 
 get_linkables() {
@@ -23,7 +48,7 @@ backup() {
             echo "backing up $filename"
             cp "$target" "$BACKUP_DIR"
         else
-            echo -e "$filename does not exist at this location or is a symlink"
+            warning "$filename does not exist at this location or is a symlink"
         fi
     done
 
@@ -32,35 +57,34 @@ backup() {
             echo "backing up $filename"
             cp -rf "$filename" "$BACKUP_DIR"
         else
-            echo -e "$filename does not exist at this location or is a symlink"
+            warning "$filename does not exist at this location or is a symlink"
         fi
     done
 }
 
 
 link() {
-    echo -e "\nCreating symlinks"
-    seperator
+    title "Creating symlinks"
 
     if [ ! -e "$HOME/.dotfiles" ]; then
-        echo "Adding symlink to dotfiles at $HOME/.dotfiles"
+        info "Adding symlink to dotfiles at $HOME/.dotfiles"
         ln -s "$DOTFILES" ~/.dotfiles
     fi
 
     for file in $(get_linkables) ; do
         target="$HOME/.$(basename "$file" '.symlink')"
         if [ -e "$target" ]; then
-            echo "~${target#$HOME} already exists... Skipping."
+            info "~${target#$HOME} already exists... Skipping."
         else
-            echo "Creating symlink for $file"
+            info "Creating symlink for $file"
             ln -s "$file" "$target"
         fi
     done
 
-    echo -e "\n\ninstalling to ~/.config"
-    seperator
+    echo -e
+    info "installing to ~/.config"
     if [ ! -d "$HOME/.config" ]; then
-        echo "Creating ~/.config"
+        info "Creating ~/.config"
         mkdir -p "$HOME/.config"
     fi
 
@@ -68,9 +92,9 @@ link() {
     for config in $config_files; do
         target="$HOME/.config/$(basename "$config")"
         if [ -e "$target" ]; then
-            echo "~${target#$HOME} already exists... Skipping."
+            info "~${target#$HOME} already exists... Skipping."
         else
-            echo "Creating symlink for $config"
+            info "Creating symlink for $config"
             ln -s "$config" "$target"
         fi
     done
@@ -82,8 +106,8 @@ link() {
     # like to configure vim, so lets symlink ~/.vimrc and ~/.vim over to their
     # neovim equivalent.
 
-    echo -e "\nCreating vim symlinks"
-    seperator
+    echo -e
+    info "Creating vim symlinks"
     VIMFILES=( "$HOME/.vim:$DOTFILES/config/nvim"
             "$HOME/.vimrc:$DOTFILES/config/nvim/init.vim" )
 
@@ -91,17 +115,16 @@ link() {
         KEY=${file%%:*}
         VALUE=${file#*:}
         if [ -e "${KEY}" ]; then
-            echo "${KEY} already exists... skipping."
+            info "${KEY} already exists... skipping."
         else
-            echo "Creating symlink for $KEY"
+            info "Creating symlink for $KEY"
             ln -s "${VALUE}" "${KEY}"
         fi
     done
 }
 
 setup_git() {
-    echo -e "\nSetting up Git."
-    seperator
+    title "Setting up Git"
 
     defaultName=$(git config user.name)
     defaultEmail=$(git config user.email)
@@ -128,11 +151,10 @@ setup_git() {
 }
 
 homebrew() {
-    echo -e "\nSetting up Homebrew"
-    seperator
+    title "Setting up Homebrew"
 
     if test ! "$(command -v brew)"; then
-        echo -e "Homebrew not installed. Installing."
+        info "Homebrew not installed. Installing."
         # Run as a login shell (non-interactive) so that the script doesn't pause for user input
         curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh | bash --login
     fi
@@ -147,37 +169,39 @@ homebrew() {
     brew bundle
 
     # install fzf
-    echo -e "\nInstalling fzf"
+    echo -e
+    info "Installing fzf"
     "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc --no-bash --no-fish
 }
 
 function shell() {
-    echo -e "\nSetting up ZSH"
-    seperator
+    title "Configuring shell"
 
     [[ -n "$(command -v brew)" ]] && zsh_path="$(brew --prefix)/bin/zsh" || zsh_path="$(which zsh)"
     if ! grep "$zsh_path" /etc/shells; then
-        echo "adding $zsh_path to /etc/shells"
+        info "adding $zsh_path to /etc/shells"
         echo "$zsh_path" | sudo tee -a /etc/shells
     fi
 
     if [[ "$SHELL" != "$zsh_path" ]]; then
         chsh -s "$zsh_path"
-        echo "default shell changed to $zsh_path"
+        info "default shell changed to $zsh_path"
     fi
 }
 
 function terminfo() {
-    echo -e "\nSetting up terminfo"
-    seperator
+    title "Configuring terminfo"
+
+    info "adding tmux.terminfo"
     tic -x "$DOTFILES/resources/tmux.terminfo"
+
+    info "adding xterm-256color-italic.terminfo"
     tic -x "$DOTFILES/resources/xterm-256color-italic.terminfo"
 }
 
 macos() {
     if [[ "$(uname)" == "Darwin" ]]; then
-        echo -e "\nConfiguring macOS"
-        seperator
+        title "Configuring macOS"
 
         echo "Finder: show all filename extensions"
         defaults write NSGlobalDomain AppleShowAllExtensions -bool true
@@ -261,7 +285,10 @@ case "$1" in
         macos
         ;;
     *)
-        echo $"Usage: $(basename "$0") {backup|link|git|brew|shell|terminfo|macos|all}"
+        echo -e $"\nUsage: $(basename "$0") {backup|link|git|brew|shell|terminfo|macos|all}\n"
         exit 1
         ;;
 esac
+
+echo -e
+success "Done."
