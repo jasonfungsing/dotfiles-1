@@ -99,10 +99,9 @@ link() {
     done
 }
 
-git() {
+setup_git() {
     echo -e "\nSetting up Git."
     seperator
-    echo -e "\n"
 
     defaultName=$(git config user.name)
     defaultEmail=$(git config user.email)
@@ -112,9 +111,9 @@ git() {
     read -rp "Email [$defaultEmail] " email
     read -rp "Github username [$defaultGithub] " github
 
-    git config --global user.name "${name:-$defaultName}"
-    git config --global user.email "${email:-$defaultEmail}"
-    git config --global github.user "${github:-$defaultGithub}"
+    git config -f ~/.gitconfig-local user.name "${name:-$defaultName}"
+    git config -f ~/.gitconfig-local user.email "${email:-$defaultEmail}"
+    git config -f ~/.gitconfig-local github.user "${github:-$defaultGithub}"
 
     if [[ "$(uname)" == "Darwin" ]]; then
         git config --global credential.helper "osxkeychain"
@@ -239,7 +238,7 @@ case "$1" in
         link
         ;;
     git)
-        git
+        setup_git
         ;;
     brew)
         homebrew
