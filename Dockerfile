@@ -4,15 +4,7 @@ FROM ubuntu
 RUN apt update
 
 # Install dependencies
-RUN apt-get install -y build-essential
-RUN apt-get install -y file
-RUN apt-get install -y zsh
-RUN apt-get install -y git
-RUN apt-get install -y sudo
-RUN apt-get install -y ruby
-RUN apt-get install -y curl
-RUN apt-get install -y vim
-RUN apt-get install -y language-pack-en
+RUN apt-get install -y build-essential file zsh git sudo ruby curl vim language-pack-en
 
 # take an SSH key as a build argument
 ARG PRIVATE_KEY
