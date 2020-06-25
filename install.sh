@@ -18,10 +18,10 @@ backeup() {
     echo "Creating backup directory at $BACKUP_DIR"
     mkdir -p "$BACKUP_DIR"
 
-    linkables=$( find -H "$DOTFILES" -maxdepth 3 -name '*.symlink' )
+    linkables=$(find -H "$DOTFILES" -maxdepth 3 -name '*.symlink')
 
     for file in $linkables; do
-        filename=".$( basename "$file" '.symlink' )"
+        filename=".$(basename "$file" '.symlink')"
         target="$HOME/$filename"
         if [ -f "$target" ]; then
             echo "backing up $filename"
@@ -46,9 +46,14 @@ link() {
     echo -e "\nCreating symlinks"
     seperator
 
-    linkables=$( find -H "$DOTFILES" -maxdepth 3 -name '*.symlink' )
+    if [ ! -e "$HOME/.dotfiles" ]; then
+        echo "Adding symlink to dotfiles at $HOME/.dotfiles"
+        ln -s "$DOTFILES" ~/.dotfiles
+    fi
+
+    linkables=$(find -H "$DOTFILES" -maxdepth 3 -name '*.symlink')
     for file in $linkables ; do
-        target="$HOME/.$( basename "$file" '.symlink' )"
+        target="$HOME/.$(basename "$file" '.symlink')"
         if [ -e "$target" ]; then
             echo "~${target#$HOME} already exists... Skipping."
         else
@@ -64,9 +69,9 @@ link() {
         mkdir -p "$HOME/.config"
     fi
 
-    config_files=$( find "$DOTFILES/config" -maxdepth 1 2>/dev/null )
+    config_files=$(find "$DOTFILES/config" -maxdepth 1 2>/dev/null)
     for config in $config_files; do
-        target="$HOME/.config/$( basename "$config" )"
+        target="$HOME/.config/$(basename "$config")"
         if [ -e "$target" ]; then
             echo "~${target#$HOME} already exists... Skipping."
         else
@@ -104,9 +109,9 @@ git() {
     seperator
     echo -e "\n"
 
-    defaultName=$( git config --global user.name )
-    defaultEmail=$( git config --global user.email )
-    defaultGithub=$( git config --global github.user )
+    defaultName=$(git config --global user.name)
+    defaultEmail=$(git config --global user.email)
+    defaultGithub=$(git config --global github.user)
 
     read -rp "Name [$defaultName] " name
     read -rp "Email [$defaultEmail] " email
@@ -116,7 +121,7 @@ git() {
     git config --global user.email "${email:-$defaultEmail}"
     git config --global github.user "${github:-$defaultGithub}"
 
-    if [[ "$( uname )" == "Darwin" ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
         git config --global credential.helper "osxkeychain"
     else
         read -rn 1 -p "Save user and password to an unencrypted file to avoid writing? [y/N] " save
@@ -176,7 +181,7 @@ function terminfo() {
 }
 
 macos() {
-    if [[ "$( uname )" == "Darwin" ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
         echo -e "\nConfiguring macOS"
         seperator
 

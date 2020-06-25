@@ -1,4 +1,4 @@
-export DOTFILES=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+export DOTFILES="$HOME/.dotfiles"
 export CACHEDIR="$HOME/.local/share"
 export VIM_TMP="$HOME/.vim-tmp"
 
