@@ -2,25 +2,21 @@
 
 DOTFILES="$(pwd)"
 
-command_exists() {
-    type "$1" /dev/null 2>&1
-}
-
 seperator() {
     echo -e "==============================\n"
 }
 
-backeup() {
-    BACKUP_DIR=$HOME/dotfiles-backup
+get_linkables() {
+    find -H "$DOTFILES" -maxdepth 3 -name '*.symlink'
+}
 
-    set -e # Exit immediately if a command exits with a non-zero status.
+backup() {
+    BACKUP_DIR=$HOME/dotfiles-backup
 
     echo "Creating backup directory at $BACKUP_DIR"
     mkdir -p "$BACKUP_DIR"
 
-    linkables=$(find -H "$DOTFILES" -maxdepth 3 -name '*.symlink')
-
-    for file in $linkables; do
+    for file in $(get_linkables); do
         filename=".$(basename "$file" '.symlink')"
         target="$HOME/$filename"
         if [ -f "$target" ]; then
@@ -51,8 +47,7 @@ link() {
         ln -s "$DOTFILES" ~/.dotfiles
     fi
 
-    linkables=$(find -H "$DOTFILES" -maxdepth 3 -name '*.symlink')
-    for file in $linkables ; do
+    for file in $(get_linkables) ; do
         target="$HOME/.$(basename "$file" '.symlink')"
         if [ -e "$target" ]; then
             echo "~${target#$HOME} already exists... Skipping."
@@ -109,9 +104,9 @@ git() {
     seperator
     echo -e "\n"
 
-    defaultName=$(git config --global user.name)
-    defaultEmail=$(git config --global user.email)
-    defaultGithub=$(git config --global github.user)
+    defaultName=$(git config user.name)
+    defaultEmail=$(git config user.email)
+    defaultGithub=$(git config github.user)
 
     read -rp "Name [$defaultName] " name
     read -rp "Email [$defaultEmail] " email
