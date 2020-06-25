@@ -5,7 +5,6 @@ if OS.mac?
 
     brew "mas"
     brew "noti"
-    brew "reattach-to-user-namespace"
     brew "trash"
 
     # Applications
